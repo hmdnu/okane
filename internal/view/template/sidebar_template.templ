@@ -1,0 +1,39 @@
+package template
+
+import "github.com/hmdnu/okane/internal/dto"
+
+templ SidebarLayout(title string, active string, profile dto.SidebarProfile) {
+	@MainTemplate(title) {
+		<div x-data="{ sidebarOpen: sessionStorage.getItem('sidebarOpen') !== 'false', toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; sessionStorage.setItem('sidebarOpen', this.sidebarOpen) }, closeSidebar() { this.sidebarOpen = false; sessionStorage.setItem('sidebarOpen', false) } }" class="min-h-screen bg-gray-50">
+			<button type="button" x-on:click="toggleSidebar()" class="fixed left-4 top-4 z-50 rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white shadow hover:bg-gray-800">
+				<span x-show="!sidebarOpen" class="inline-block rotate-90">|||</span>
+				<span x-show="sidebarOpen" class="inline-block rotate-90">|||</span>
+			</button>
+			<div x-show="sidebarOpen" x-cloak x-transition.opacity x-on:click="closeSidebar()" class="fixed inset-0 z-30 bg-black/30"></div>
+			<aside x-show="sidebarOpen" x-cloak x-transition class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white">
+				<div class="flex min-h-screen flex-col px-4 py-4 pt-20">
+					<div class="mb-8 px-2">
+						<a href="/" x-on:click="closeSidebar()" class="text-xl font-semibold text-gray-900">Okane</a>
+					</div>
+					<nav class="flex flex-1 flex-col gap-2">
+						<a href="/" x-on:click="closeSidebar()" class={ sidebarLinkClass(active, "dashboard") }>Dashboard</a>
+						<a href="/categories" x-on:click="closeSidebar()" class={ sidebarLinkClass(active, "category") }>Category Management</a>
+						<a href="/settings" x-on:click="closeSidebar()" class={ sidebarLinkClass(active, "setting") }>User Setting</a>
+					</nav>
+					<div class="border-t border-gray-200 pt-4">
+						<p class="truncate text-sm font-medium text-gray-900">{ profile.Username }</p>
+						<p class="mt-0.5 truncate text-xs text-gray-500">{ profile.Email }</p>
+					</div>
+					<form method="post" action="/auth/logout" class="mt-4 flex flex-col">
+						<button type="submit" class="w-full rounded px-3 py-2 text-center text-sm font-medium text-red-600 hover:bg-red-50">Logout</button>
+					</form>
+				</div>
+			</aside>
+			<div>
+				<main class="px-4 py-20 sm:px-6 lg:px-8">
+					{ children... }
+				</main>
+			</div>
+		</div>
+	}
+}

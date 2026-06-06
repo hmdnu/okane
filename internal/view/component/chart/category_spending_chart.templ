@@ -1,0 +1,30 @@
+package chart
+
+import "github.com/hmdnu/okane/internal/dto"
+
+templ CategorySpendingChart(spendings []dto.DashboardCategorySpending) {
+	if len(spendings) == 0 {
+		<div class="px-5 py-8 text-center text-sm text-gray-500">No spending found.</div>
+	} else {
+		<div
+			x-data={ categorySpendingChartState(spendings) }
+			x-init="init()"
+			class="grid gap-5 p-5"
+		>
+			<div class="relative h-56 min-h-56">
+				<canvas x-ref="chart" aria-label="Spending by category chart"></canvas>
+			</div>
+			<div class="space-y-3">
+				for index, spending := range spendings {
+					<div class="flex items-center justify-between gap-4">
+						<div class="flex min-w-0 items-center gap-3">
+							<span class={ chartLegendClass(index) }></span>
+							<span class="truncate text-sm font-medium text-gray-900">{ spending.CategoryName }</span>
+						</div>
+						<span class="whitespace-nowrap text-sm font-medium text-red-600">{ formatCurrency(spending.Total) }</span>
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

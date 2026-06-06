@@ -1,0 +1,203 @@
+package dashboard
+
+import (
+	"github.com/hmdnu/okane/internal/dto"
+	"github.com/hmdnu/okane/internal/view/component/chart"
+	"github.com/hmdnu/okane/internal/view/template"
+)
+
+templ Dashboard(data dto.DashboardData) {
+	@template.SidebarLayout("Dashboard", "dashboard", data.Profile) {
+		<div
+			x-data={ transactionModalState(len(data.TransactionErrors) > 0) }
+			class="mx-auto w-full max-w-screen-2xl"
+		>
+			<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h1 class="text-3xl font-semibold text-gray-900">Dashboard</h1>
+					if data.Filter.IsActive {
+						<p class="mt-1 text-sm text-gray-500">Monthly summary up to the selected date.</p>
+					} else {
+						<p class="mt-1 text-sm text-gray-500">All-time summary and transactions.</p>
+					}
+				</div>
+				<button type="button" x-on:click="transactionModalOpen = true" class="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">New Transaction</button>
+			</div>
+			<form method="get" action="/" class="mb-6 rounded bg-white p-4 shadow">
+				<div class="grid gap-4 sm:grid-cols-[1fr_auto]">
+					<div>
+						<label for="date" class="mb-1 block text-sm font-medium text-gray-700">Date</label>
+						<input
+							id="date"
+							name="date"
+							type="text"
+							value={ formatDateInput(data.Filter.Year, data.Filter.Month, data.Filter.Day) }
+							x-init="flatpickr($el, { dateFormat: 'Y-m-d', altInput: true, altFormat: 'd F Y', allowInput: false, disableMobile: true, altInputClass: 'w-full cursor-pointer rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none' })"
+							class="hidden"
+						/>
+					</div>
+					<div class="flex items-end gap-3">
+						<button type="submit" class="w-full rounded bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800 sm:w-auto">Filter</button>
+						if data.Filter.IsActive {
+							<a href="/" class="rounded border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50">Clear filter</a>
+						} else {
+							<a href={ "/?date=" + todayDateInput() } class="rounded border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50">Today filter</a>
+						}
+					</div>
+				</div>
+			</form>
+			<div class="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+				<div class="rounded bg-white p-4 shadow">
+					<p class="text-xs font-medium uppercase tracking-wide text-gray-500">Main Balance</p>
+					<p class="mt-1 text-xl font-semibold text-gray-900">{ formatCurrency(data.Summary.Balance) }</p>
+				</div>
+				<div class="rounded bg-white p-4 shadow">
+					<p class="text-xs font-medium uppercase tracking-wide text-gray-500">Income</p>
+					<p class="mt-1 text-xl font-semibold text-green-600">{ formatCurrency(data.Summary.Income) }</p>
+				</div>
+				<div class="rounded bg-white p-4 shadow">
+					<p class="text-xs font-medium uppercase tracking-wide text-gray-500">Expense</p>
+					<p class="mt-1 text-xl font-semibold text-red-600">{ formatCurrency(data.Summary.Expense) }</p>
+				</div>
+				<div class="rounded bg-white p-4 shadow">
+					<p class="text-xs font-medium uppercase tracking-wide text-gray-500">Average Spending</p>
+					<p class="mt-1 text-xl font-semibold text-red-600">{ formatCurrency(data.Summary.AverageSpending) }</p>
+				</div>
+			</div>
+			<div class="grid gap-8 xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]">
+				<div class="overflow-hidden rounded bg-white shadow">
+					<div class="border-b border-gray-200 px-5 py-4">
+						<h2 class="text-lg font-semibold text-gray-900">Spending by Category</h2>
+						if data.Filter.IsActive {
+							<p class="mt-1 text-sm text-gray-500">Expense totals for the selected date.</p>
+						} else {
+							<p class="mt-1 text-sm text-gray-500">All-time expense totals.</p>
+						}
+					</div>
+					@chart.CategorySpendingChart(data.CategorySpendings)
+				</div>
+				<div class="overflow-hidden rounded bg-white shadow">
+					<div class="border-b border-gray-200 px-5 py-4">
+						<h2 class="text-lg font-semibold text-gray-900">Transactions</h2>
+						if data.Filter.IsActive {
+							<p class="mt-1 text-sm text-gray-500">Transactions for the selected date.</p>
+						} else {
+							<p class="mt-1 text-sm text-gray-500">All transactions.</p>
+						}
+					</div>
+					<div class="overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200">
+							<thead class="bg-gray-50">
+								<tr>
+									<th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Name</th>
+									<th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Category</th>
+									<th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Type</th>
+									<th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Amount</th>
+									<th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Date</th>
+									<th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Note</th>
+									<th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Actions</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-gray-200 bg-white">
+								if len(data.Transactions) == 0 {
+									<tr>
+										if data.Filter.IsActive {
+											<td colspan="7" class="px-5 py-8 text-center text-sm text-gray-500">No transactions found for this date.</td>
+										} else {
+											<td colspan="7" class="px-5 py-8 text-center text-sm text-gray-500">No transactions found.</td>
+										}
+									</tr>
+								}
+								for _, transaction := range data.Transactions {
+									<tr>
+										<td class="whitespace-nowrap px-5 py-4 text-sm font-medium text-gray-900">{ transaction.Name }</td>
+										<td class="whitespace-nowrap px-5 py-4 text-sm text-gray-500">
+											if transaction.CategoryName == "" {
+												<span>-</span>
+											} else {
+												<span>{ transaction.CategoryName }</span>
+											}
+										</td>
+										<td class="whitespace-nowrap px-5 py-4 text-sm"><span class={ transactionTypeClass(transaction.Type) }>{ formatType(transaction.Type) }</span></td>
+										<td class="whitespace-nowrap px-5 py-4 text-right text-sm font-medium text-gray-900">{ formatCurrency(transaction.Amount) }</td>
+										<td class="whitespace-nowrap px-5 py-4 text-sm text-gray-500">{ formatDateTime(transaction.CreatedAt) }</td>
+										<td class="px-5 py-4 text-sm text-gray-500">{ transaction.Note }</td>
+										<td class="whitespace-nowrap px-5 py-4 text-right text-sm">
+											<button type="button" x-on:click={ "deleteModalOpen = true; deleteAction = '/transactions/" + formatUint(transaction.ID) + "/delete'" } class="rounded border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">Delete</button>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div x-show="transactionModalOpen" x-cloak x-on:keydown.escape.window="transactionModalOpen = false" class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+				<div x-on:click="transactionModalOpen = false" class="absolute inset-0 bg-black/40"></div>
+				<div class="relative w-full max-w-lg rounded bg-white p-6 shadow-xl">
+					<div class="mb-5 flex items-center justify-between">
+						<h2 class="text-xl font-semibold text-gray-900">New Transaction</h2>
+						<button type="button" x-on:click="transactionModalOpen = false" class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900">×</button>
+					</div>
+					<form method="post" action="/transactions" class="space-y-4">
+						if len(data.TransactionErrors) > 0 {
+							<div class="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+								<ul class="list-disc space-y-1 pl-4">
+									for _, validationError := range data.TransactionErrors {
+										<li class="text-red-500">{ validationError.Message }</li>
+									}
+								</ul>
+							</div>
+						}
+						<div>
+							<label for="transaction-name" class="mb-1 block text-sm font-medium text-gray-700">Name</label>
+							<input id="transaction-name" name="name" type="text" required maxlength="100" class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"/>
+						</div>
+						<div class="grid gap-4 sm:grid-cols-2">
+							<div>
+								<label for="transaction-amount" class="mb-1 block text-sm font-medium text-gray-700">Amount</label>
+								<input id="transaction-amount" name="amount" type="number" min="0.01" step="0.01" required class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"/>
+							</div>
+							<div>
+								<label for="transaction-type" class="mb-1 block text-sm font-medium text-gray-700">Type</label>
+								<select id="transaction-type" name="type" required class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none">
+									<option value="income">Income</option>
+									<option value="expense">Expense</option>
+									<option value="initial_balance">Initial Balance</option>
+								</select>
+							</div>
+						</div>
+						<div>
+							<label for="transaction-category" class="mb-1 block text-sm font-medium text-gray-700">Category</label>
+							<select id="transaction-category" name="categoryId" required class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none">
+								<option value="" disabled selected>Select category</option>
+								for _, category := range data.Categories {
+									<option value={ formatUint(category.ID) }>{ category.Name }</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label for="transaction-note" class="mb-1 block text-sm font-medium text-gray-700">Note</label>
+							<textarea id="transaction-note" name="note" maxlength="500" rows="3" class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"></textarea>
+						</div>
+						<div class="flex justify-end gap-3 pt-2">
+							<button type="button" x-on:click="transactionModalOpen = false" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+							<button type="submit" class="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Create</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div x-show="deleteModalOpen" x-cloak x-on:keydown.escape.window="deleteModalOpen = false" class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+				<div x-on:click="deleteModalOpen = false" class="absolute inset-0 bg-black/40"></div>
+				<div class="relative w-full max-w-sm rounded bg-white p-4 shadow-xl">
+					<h2 class="text-lg font-semibold text-gray-900">Delete transaction?</h2>
+					<p class="mt-2 text-sm text-gray-500">This transaction will be removed from your dashboard.</p>
+					<form method="post" x-bind:action="deleteAction" class="mt-5 grid gap-2 sm:grid-cols-2">
+						<button type="button" x-on:click="deleteModalOpen = false" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+						<button type="submit" class="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">Delete transaction</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	}
+}

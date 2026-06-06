@@ -1,0 +1,87 @@
+package category
+
+import (
+	"github.com/hmdnu/okane/internal/dto"
+	"github.com/hmdnu/okane/internal/view/template"
+)
+
+templ CategoryManagement(data dto.CategoryManagementData) {
+	@template.SidebarLayout("Category Management", "category", data.Profile) {
+		<div x-data="{ categoryModalOpen: false }" class="mx-auto max-w-6xl">
+			<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h1 class="text-3xl font-semibold text-gray-900">Category Management</h1>
+					<p class="mt-1 text-sm text-gray-500">Create and manage the categories used by your transactions.</p>
+				</div>
+				<button type="button" x-on:click="categoryModalOpen = true" class="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">New Category</button>
+			</div>
+			<div class="overflow-hidden rounded bg-white shadow">
+				<div class="border-b border-gray-200 px-5 py-4">
+					<h2 class="text-lg font-semibold text-gray-900">Categories</h2>
+					<p class="mt-1 text-sm text-gray-500">Global categories are available but cannot be edited here.</p>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-200">
+						<thead class="bg-gray-50">
+							<tr>
+								<th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Name</th>
+								<th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Created</th>
+								<th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Actions</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-200 bg-white">
+							if len(data.Categories) == 0 {
+								<tr>
+									<td colspan="3" class="px-5 py-8 text-center text-sm text-gray-500">No categories found.</td>
+								</tr>
+							}
+							for _, category := range data.Categories {
+								<tr>
+									<td class="min-w-64 px-5 py-4">
+										if category.IsGlobal {
+											<span class="text-sm font-medium text-gray-900">{ category.Name }</span>
+										} else {
+											<form method="post" action={ "/categories/" + formatUint(category.ID) + "/update" } class="flex gap-2">
+												<input name="name" type="text" value={ category.Name } required maxlength="100" class="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"/>
+												<button type="submit" class="rounded border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Save</button>
+											</form>
+										}
+									</td>
+									<td class="whitespace-nowrap px-5 py-4 text-sm text-gray-500">{ formatDate(category.CreatedAt) }</td>
+									<td class="whitespace-nowrap px-5 py-4 text-right text-sm">
+										if category.IsGlobal {
+											<span class="text-gray-400">Read only</span>
+										} else {
+											<form method="post" action={ "/categories/" + formatUint(category.ID) + "/delete" }>
+												<button type="submit" class="rounded border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">Delete</button>
+											</form>
+										}
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div x-show="categoryModalOpen" x-cloak x-on:keydown.escape.window="categoryModalOpen = false" class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+				<div x-on:click="categoryModalOpen = false" class="absolute inset-0 bg-black/40"></div>
+				<div class="relative w-full max-w-lg rounded bg-white p-6 shadow-xl">
+					<div class="mb-5 flex items-center justify-between">
+						<h2 class="text-xl font-semibold text-gray-900">New Category</h2>
+						<button type="button" x-on:click="categoryModalOpen = false" class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900">×</button>
+					</div>
+					<form method="post" action="/categories" class="space-y-4">
+						<div>
+							<label for="category-name" class="mb-1 block text-sm font-medium text-gray-700">Category name</label>
+							<input id="category-name" name="name" type="text" required maxlength="100" class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"/>
+						</div>
+						<div class="flex justify-end gap-3 pt-2">
+							<button type="button" x-on:click="categoryModalOpen = false" class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+							<button type="submit" class="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Create</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	}
+}

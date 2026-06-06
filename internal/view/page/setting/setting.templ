@@ -1,0 +1,75 @@
+package setting
+
+import (
+	"github.com/hmdnu/okane/internal/dto"
+	"github.com/hmdnu/okane/internal/view/template"
+)
+
+templ UserSetting(data dto.UserSettingData) {
+	@template.SidebarLayout("User Setting", "setting", data.Profile) {
+		<div class="mx-auto max-w-6xl">
+			<div class="mb-8">
+				<h1 class="text-3xl font-semibold text-gray-900">User Setting</h1>
+				<p class="mt-1 text-sm text-gray-500">View your account information.</p>
+			</div>
+			<div class="overflow-hidden rounded bg-white shadow">
+				<div class="border-b border-gray-200 px-5 py-4">
+					<h2 class="text-lg font-semibold text-gray-900">Account Information</h2>
+					<p class="mt-1 text-sm text-gray-500">Your basic profile details.</p>
+				</div>
+				<div class="divide-y divide-gray-200">
+					<div class="grid gap-1 px-5 py-4 sm:grid-cols-[12rem_1fr] sm:gap-4">
+						<p class="text-sm font-medium text-gray-500">Username</p>
+						<p class="text-sm font-medium text-gray-900">{ data.Username }</p>
+					</div>
+					<div class="grid gap-1 px-5 py-4 sm:grid-cols-[12rem_1fr] sm:gap-4">
+						<p class="text-sm font-medium text-gray-500">Email</p>
+						<p class="text-sm font-medium text-gray-900">{ data.Email }</p>
+					</div>
+					<div class="grid gap-1 px-5 py-4 sm:grid-cols-[12rem_1fr] sm:gap-4">
+						<p class="text-sm font-medium text-gray-500">Joined</p>
+						<p class="text-sm font-medium text-gray-900">{ formatDateTime(data.CreatedAt) }</p>
+					</div>
+					<div class="grid gap-1 px-5 py-4 sm:grid-cols-[12rem_1fr] sm:gap-4">
+						<p class="text-sm font-medium text-gray-500">Last updated</p>
+						<p class="text-sm font-medium text-gray-900">{ formatDateTime(data.UpdatedAt) }</p>
+					</div>
+				</div>
+			</div>
+			<div class="mt-8 overflow-hidden rounded bg-white shadow">
+				<div class="border-b border-gray-200 px-5 py-4">
+					<h2 class="text-lg font-semibold text-gray-900">Auto Salary</h2>
+					<p class="mt-1 text-sm text-gray-500">Create a salary income transaction automatically each month.</p>
+				</div>
+				<form method="post" action="/settings/salary" class="space-y-4 p-5">
+					<label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+						<input name="enabled" type="checkbox" checked?={ data.SalarySetting.Enabled } class="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"/>
+						<span>Enable auto salary</span>
+					</label>
+					<div class="grid gap-4 sm:grid-cols-3">
+						<div>
+							<label for="salary-day" class="mb-1 block text-sm font-medium text-gray-700">Salary date</label>
+							<input id="salary-day" name="dayOfMonth" type="number" min="1" max="31" required value={ formatInt(data.SalarySetting.DayOfMonth) } class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"/>
+						</div>
+						<div>
+							<label for="salary-amount" class="mb-1 block text-sm font-medium text-gray-700">Salary amount</label>
+							<input id="salary-amount" name="amount" type="number" min="0.01" step="0.01" required value={ formatFloat(data.SalarySetting.Amount) } class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"/>
+						</div>
+						<div>
+							<label for="salary-category" class="mb-1 block text-sm font-medium text-gray-700">Salary category</label>
+							<select id="salary-category" name="categoryId" required class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none">
+								<option value="" disabled selected?={ data.SalarySetting.CategoryID == 0 }>Select category</option>
+								for _, category := range data.Categories {
+									<option value={ formatUint(category.ID) } selected?={ category.ID == data.SalarySetting.CategoryID }>{ category.Name }</option>
+								}
+							</select>
+						</div>
+					</div>
+					<div class="flex justify-end">
+						<button type="submit" class="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Save salary setting</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}

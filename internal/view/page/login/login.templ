@@ -1,0 +1,44 @@
+package login
+
+import (
+	"github.com/hmdnu/okane/internal/view/template"
+	"github.com/hmdnu/okane/lib"
+)
+
+templ Login(validationErrors []lib.FormError, successMsg string) {
+	@template.MainTemplate("Login") {
+		<div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+			<form method="post" action="/auth/login" class="w-full max-w-sm rounded bg-white p-6 shadow flex flex-col">
+				<h1 class="mb-6 text-2xl font-semibold text-gray-900">Login</h1>
+				if successMsg != "" {
+					<div class="mb-4 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+						{ successMsg }
+					</div>
+				}
+				if len(validationErrors) > 0 {
+					<div class="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+						<ul class="list-disc space-y-1 pl-4">
+							for _, validationError := range validationErrors {
+								<li class="text-red-500">{ validationError.Message }</li>
+							}
+						</ul>
+					</div>
+				}
+				<div class="mb-4">
+					<label for="identifier" class="mb-1 block text-sm font-medium text-gray-700">Email or Username</label>
+					<input id="identifier" name="identifier" type="text" autocomplete="username" required class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"/>
+				</div>
+				<div class="mb-6">
+					<label for="password" class="mb-1 block text-sm font-medium text-gray-700">Password</label>
+					<input id="password" name="password" type="password" autocomplete="current-password" required class="w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-900 focus:outline-none"/>
+				</div>
+				<label class="mb-6 flex items-center gap-2 text-sm text-gray-700">
+					<input name="stay_logged_in" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"/>
+					<span>Stay logged in</span>
+				</label>
+				<button type="submit" class="w-full rounded bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800">Login</button>
+				<a href="/register" class="text-blue-500 hover:text-underline text-sm text-center mx-auto mt-3">Register instead</a>
+			</form>
+		</div>
+	}
+}
