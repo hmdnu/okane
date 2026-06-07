@@ -1,0 +1,19 @@
+services:
+  okane:
+    image: golang:1.26.2
+    working_dir: /app
+    command: sh -c "go mod download && go run ./cmd/main.go"
+    ports:
+      - "8727:8727"
+    environment:
+      PORT: 8727
+      SESSION_SECRET: ${SESSION_SECRET:-local-dev-session-secret-change-me}
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+    restart: unless-stopped
+
+volumes:
+  go-mod-cache:
+  go-build-cache:
