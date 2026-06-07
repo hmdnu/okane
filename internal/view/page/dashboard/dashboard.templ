@@ -4,6 +4,7 @@ import (
 	"github.com/hmdnu/okane/internal/dto"
 	"github.com/hmdnu/okane/internal/view/component/chart"
 	"github.com/hmdnu/okane/internal/view/template"
+	"time"
 )
 
 templ Dashboard(data dto.DashboardData) {
@@ -21,6 +22,9 @@ templ Dashboard(data dto.DashboardData) {
 						<p class="mt-1 text-sm text-gray-500">All-time summary and transactions.</p>
 					}
 				</div>
+			</div>
+			<div class="flex justify-between items-center mb-5">
+				<div class="font-semibold text-xl text-gray-900">{ formatDate(time.Now()) }</div>
 				<button type="button" x-on:click="transactionModalOpen = true" class="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">New Transaction</button>
 			</div>
 			<form method="get" action="/" class="mb-6 rounded bg-white p-4 shadow">

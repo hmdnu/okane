@@ -72,7 +72,7 @@ func formatUint(value uint) string {
 }
 
 func formatDate(value time.Time) string {
-	return value.Format("02/01/2006")
+	return value.Format("02 January 2006")
 }
 
 func formatDateTime(value time.Time) string {
