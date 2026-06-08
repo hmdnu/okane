@@ -6,6 +6,7 @@ services:
     ports:
       - "8727:8727"
     environment:
+      TZ: Asia/Jakarta
       PORT: 8727
       SESSION_SECRET: ${SESSION_SECRET:-local-dev-session-secret-change-me}
     volumes:
